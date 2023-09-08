@@ -18,6 +18,8 @@ const Handles = Object.freeze({
   TIME_HANDLE: 'TIME_HANDLE',
 });
 
+import { mapGetters } from 'vuex';
+
 export default {
   name: 'VideoTrimmer',
   props: {
@@ -43,7 +45,7 @@ export default {
     },
     maxTrimDuration: {
       type: Number,
-      default: 60,
+      default: 21,
     },
   },
   data () {
@@ -69,10 +71,12 @@ export default {
     positionDurationRatio () {
       return this.canvasWidth / this.videoDuration;
     },
+    ...mapGetters('frames', ['videoFrames'])
   },
   watch: {
     frames () {
       this.setCanvasWidth();
+
     },
     currentTime (newValue) {
       this.timeHandlePos = newValue * this.positionDurationRatio;
@@ -91,30 +95,28 @@ export default {
     },
   },
   async mounted () {
-    this.$nextTick(function () {
-      window.addEventListener('resize', this.onWindowResize);
-      window.addEventListener('mousemove', this.handleMouseMove);
+    window.addEventListener('resize', this.onWindowResize);
+    window.addEventListener('mousemove', this.handleMouseMove);
 
-      this.timeHandlePos = this.currentTime * this.positionDurationRatio;
-      this.setCanvasWidth();
-      this.handleDurationChange();
+    this.timeHandlePos = this.currentTime * this.positionDurationRatio;
+    this.setCanvasWidth();
+    this.handleDurationChange();
 
-      // Get the canvas element and its context
-      this.canvasContext = this.$refs.sliderCanvas.getContext('2d');
+    // Get the canvas element and its context
+    this.canvasContext = this.$refs.sliderCanvas.getContext('2d');
 
-      // Set the canvas width and height
-      this.$refs.sliderCanvas.width = this.$refs.sliderCanvas?.offsetWidth;
-      this.$refs.sliderCanvas.height = this.canvasHeight;
+    // Set the canvas width and height
+    this.$refs.sliderCanvas.width = this.$refs.sliderCanvas?.offsetWidth;
+    this.$refs.sliderCanvas.height = this.canvasHeight;
 
-      // Draw the frames
-      this.drawFrames().then(() => {
-        // Draw the offscreen canvas onto the main canvas
-        this.canvasContext.drawImage(this.framesCanvas, 0, 0);
+    // Draw the frames
+    this.drawFrames().then(() => {
+      // Draw the offscreen canvas onto the main canvas
+      this.canvasContext.drawImage(this.framesCanvas, 0, 0);
 
-        // Draw the initial slider
-        this.drawSlider();
-      });
-    })
+      // Draw the initial slider
+      this.drawSlider();
+    });
   },
 
   beforeUnmount () {
@@ -175,7 +177,6 @@ export default {
           })
       ).then((frames) => {
         let x = this.handleWidth;
-        console.log(frames);
         frames.forEach((img) => {
           // Finding the new width and height based on the scale factor
           let newWidth = this.frameWidth;
@@ -306,6 +307,7 @@ export default {
       });
     },
     handleMouseDown (event) {
+      console.log('---------------------------handleMouseDown')
       const mouseX = event.offsetX;
 
       // Calculate the distance between the mouse and each handle
@@ -331,6 +333,7 @@ export default {
       }
     },
     handleMouseUp () {
+      console.log('---------------------------handleMouseUp')
       this.selectedElement = null;
     },
     setCanvasWidth () {

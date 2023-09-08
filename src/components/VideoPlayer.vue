@@ -1,13 +1,14 @@
 <template>
   <div>
     <video ref="videoPlayer" class="video-js"></video>
-    <VideoTrimmer :video-duration="videoDuration" :frames="frames"/>
+    <VideoTrimmer :video-duration="videoDuration" :frames="frames" v-if="playerLoaded"/>
   </div>
 </template>
 
 <script>
 import videojs from 'video.js';
 import VideoTrimmer from "@/components/VideoTrimmer";
+import { mapActions } from 'vuex';
 
 export default {
   name: 'VideoPlayer',
@@ -32,10 +33,12 @@ export default {
       context: null,
       numFrames: 12,
       videoDuration: 21.233333,
-      frames: []
+      frames: [],
+      playerLoaded: false
     };
   },
   methods: {
+    ...mapActions('frames', ['setVideoFrames']),
     extractFrames () {
       // Create a new video element
       const video = document.createElement('video');
@@ -62,8 +65,6 @@ export default {
         // Extract frames from the video
         const extractFrame = () => {
           if (currentTime > duration || frames.length === this.numFrames) {
-            // Set the frames in the store
-            // console.log(frames);
             video.currentTime = 0;
             return;
           }
@@ -73,6 +74,10 @@ export default {
           const dataUrl = this.canvas.toDataURL();
 
           this.frames.push(dataUrl);
+          if(this.frames.length === this.numFrames) {
+            this.playerLoaded = true;
+          }
+          this.setVideoFrames(dataUrl);
           video.requestVideoFrameCallback(extractFrame);
         };
         video.requestVideoFrameCallback(extractFrame);
