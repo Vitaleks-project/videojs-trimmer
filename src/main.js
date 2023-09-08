@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-
+require('video.js/dist/video-js.css');
 Vue.config.productionTip = false
 
 new Vue({
