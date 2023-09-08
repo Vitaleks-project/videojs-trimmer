@@ -1,5 +1,6 @@
 <template>
   <div style="width: 100%" class="trim-line">
+    <h3 class="left">Trim:</h3>
     <canvas
         ref="sliderCanvas"
         @mousedown="handleMouseDown"
@@ -37,7 +38,7 @@ export default {
     },
     defaultTrim: {
       type: Object,
-      default: null,
+      default: () => { return { start: 0, end: 21 } },
     },
     minTrimDuration: {
       type: Number,
@@ -45,8 +46,11 @@ export default {
     },
     maxTrimDuration: {
       type: Number,
-      default: 21,
+      default: 60,
     },
+    player: {
+      type: Object
+    }
   },
   data () {
     return {
@@ -83,8 +87,6 @@ export default {
       this.drawSlider();
     },
     defaultTrim (newValue) {
-      console.log(newValue);
-
       const { start, end } = newValue;
 
       this.trimStart = start;
@@ -260,6 +262,7 @@ export default {
     },
     updateHandles (mouseX) {
       // Move the closest handle to the mouse
+      // console.log(this.selectedElement);
       if (this.selectedElement === Handles.START_HANDLE) {
         const currentVideoDuration =
             this.durationPositionRatio * (this.endHandlePos - mouseX);
@@ -271,7 +274,9 @@ export default {
         }
         this.startHandlePos = mouseX;
         this.trimStart = this.durationPositionRatio * mouseX > 0 ? this.durationPositionRatio * mouseX : 0;
-        this.$emit('trim-start', this.trimStart);
+        console.log(this.trimStart)
+        this.updatePlayerTimeline(this.trimStart, this.trimEnd);
+        // this.$emit('trim-start', this.trimStart);
       } else if (this.selectedElement === Handles.END_HANDLE) {
         const currentVideoDuration =
             this.durationPositionRatio * (mouseX - this.startHandlePos);
@@ -283,11 +288,13 @@ export default {
         }
         this.endHandlePos = mouseX;
         this.trimEnd = this.durationPositionRatio * mouseX <= this.videoDuration ? this.durationPositionRatio * mouseX : this.videoDuration;
-        this.$emit('trim-end', this.trimEnd);
+        console.log(this.trimEnd);
+        this.updatePlayerTimeline(this.trimStart, this.trimEnd);
+        // this.$emit('trim-end', this.trimEnd);
       } else if (this.selectedElement === Handles.TIME_HANDLE) {
         this.timeHandlePos = mouseX;
-        const currentTime = this.durationPositionRatio * mouseX;
-        this.$emit('current-time', currentTime);
+        // const currentTime = this.durationPositionRatio * mouseX;
+        // this.$emit('current-time', currentTime);
       }
 
       // Make sure the handles stay within the slider track
@@ -305,6 +312,16 @@ export default {
       requestAnimationFrame(() => {
         this.drawSlider();
       });
+    },
+    updatePlayerTimeline (start, end){
+      this.player.offset({
+        start,
+        end,
+        restart_beginning: true //Should the video go to the beginning when it ends
+      });
+      
+      this.player.currentTime(start);
+
     },
     handleMouseDown (event) {
       console.log('---------------------------handleMouseDown')
@@ -358,7 +375,6 @@ export default {
       );
     },
     handleDurationChange () {
-      console.log('22222222222222')
       if (this.videoDuration > this.maxTrimDuration) {
         this.endHandlePos = this.maxTrimDuration * this.positionDurationRatio;
         this.trimEnd = this.maxTrimDuration;
@@ -378,7 +394,7 @@ export default {
     padding-top: 30px;
   }
   canvas {
-    border: 4px solid #ffffff;
+    border: 4px solid #f3ec09;
     border-left: 1px solid #fff;
     border-right: 1px solid #fff;
     border-radius: 8px;

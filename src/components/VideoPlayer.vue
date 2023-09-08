@@ -1,12 +1,13 @@
 <template>
   <div>
-    <video ref="videoPlayer" class="video-js"></video>
-    <VideoTrimmer :video-duration="videoDuration" :frames="frames" v-if="playerLoaded"/>
+    <video ref="videoPlayer" class="video-js" id="video-trimmer"></video>
+    <VideoTrimmer :video-duration="videoDuration" :frames="frames" v-if="playerLoaded" :player="player"/>
   </div>
 </template>
 
 <script>
 import videojs from 'video.js';
+require('videojs-offset');
 import VideoTrimmer from "@/components/VideoTrimmer";
 import { mapActions } from 'vuex';
 
@@ -32,7 +33,7 @@ export default {
       canvas: null,
       context: null,
       numFrames: 12,
-      videoDuration: 21.233333,
+      videoDuration: 0,
       frames: [],
       playerLoaded: false
     };
@@ -53,6 +54,7 @@ export default {
         const duration = video.duration;
         const interval = duration / this.numFrames;
         let currentTime = 0;
+        this.videoDuration = video.duration;
 
         // Create a canvas element to draw the frames on
         const actualVideoHeight = video.videoHeight;
@@ -77,7 +79,6 @@ export default {
           if(this.frames.length === this.numFrames) {
             this.playerLoaded = true;
           }
-          this.setVideoFrames(dataUrl);
           video.requestVideoFrameCallback(extractFrame);
         };
         video.requestVideoFrameCallback(extractFrame);
@@ -103,6 +104,7 @@ export default {
     });
     this.extractFrames();
   },
+
   beforeDestroy () {
     if (this.player) {
       this.player.dispose();
