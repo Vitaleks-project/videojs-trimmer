@@ -32,7 +32,7 @@ export default {
       player: null,
       canvas: null,
       context: null,
-      numFrames: 10,
+      numFrames: 8,
       videoDuration: 0,
       frames: [],
       playerLoaded: false
@@ -56,7 +56,7 @@ export default {
 
         const actualVideoHeight = video.videoHeight;
         const actualVideoWidth = video.videoWidth;
-        const thumbnailWidth = 350;
+        const thumbnailWidth = 250;
         const thumbnailHeight = (thumbnailWidth / actualVideoWidth) * actualVideoHeight;
         this.canvas.width = thumbnailWidth;
         this.canvas.height = thumbnailHeight;
