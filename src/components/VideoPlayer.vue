@@ -21,7 +21,7 @@ export default {
       type: Array,
       default: () => [
         {
-          src: 'https://cdn.realync.com/transcoded-videos-stg/720_f4571304-de10-47d8-9104-9f5a6657856261e6cc26fe1c5b130090f01a/720_f4571304-de10-47d8-9104-9f5a6657856261e6cc26fe1c5b130090f01a_720_mc.mp4',
+          src: 'https://cdn.realync.com/transcoded-videos-stg/1080_0fc074dc-d84a-4841-9061-27b5f925011a/1080_0fc074dc-d84a-4841-9061-27b5f925011a_1080_mc.mp4',
           type: 'video/mp4'
         }
       ],
@@ -32,7 +32,7 @@ export default {
       player: null,
       canvas: null,
       context: null,
-      numFrames: 12,
+      numFrames: 10,
       videoDuration: 0,
       frames: [],
       playerLoaded: false
@@ -41,7 +41,6 @@ export default {
   methods: {
     ...mapActions('frames', ['setVideoFrames']),
     extractFrames () {
-      // Create a new video element
       const video = document.createElement('video');
       video.crossOrigin = 'anonymous';
       video.volume = 0.75;
@@ -49,22 +48,19 @@ export default {
       video.play();
       const frames = [];
 
-      // Handle the 'durationchange' event
       const handleDurationChange = () => {
         const duration = video.duration;
         const interval = duration / this.numFrames;
         let currentTime = 0;
         this.videoDuration = video.duration;
 
-        // Create a canvas element to draw the frames on
         const actualVideoHeight = video.videoHeight;
         const actualVideoWidth = video.videoWidth;
-        const thumbnailWidth = 200;
+        const thumbnailWidth = 350;
         const thumbnailHeight = (thumbnailWidth / actualVideoWidth) * actualVideoHeight;
         this.canvas.width = thumbnailWidth;
         this.canvas.height = thumbnailHeight;
 
-        // Extract frames from the video
         const extractFrame = () => {
           if (currentTime > duration || frames.length === this.numFrames) {
             video.currentTime = 0;
@@ -95,12 +91,7 @@ export default {
     this.player = videojs(this.$refs.videoPlayer, {
       controls: true,
       autoplay: false,
-      sources: [
-        {
-          src: 'https://cdn.realync.com/transcoded-videos-stg/720_f4571304-de10-47d8-9104-9f5a6657856261e6cc26fe1c5b130090f01a/720_f4571304-de10-47d8-9104-9f5a6657856261e6cc26fe1c5b130090f01a_720_mc.mp4',
-          type: 'video/mp4'
-        }
-      ]
+      sources: this.sources
     });
     this.extractFrames();
   },

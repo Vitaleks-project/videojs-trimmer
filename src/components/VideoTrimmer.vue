@@ -1,12 +1,12 @@
 <template>
   <div style="width: 100%" class="trim-line">
-    <h3 class="left">Trim:</h3>
     <canvas
         ref="sliderCanvas"
         @mousedown="handleMouseDown"
         @mouseup="handleMouseUp"
         style="user-select: none;"
     />
+    <div class="vertical-line"></div>
   </div>
 </template>
 
@@ -38,7 +38,7 @@ export default {
     },
     defaultTrim: {
       type: Object,
-      default: () => { return { start: 0, end: 21 } },
+      default: () => { return { start: 0, end: 10 } },
     },
     minTrimDuration: {
       type: Number,
@@ -119,10 +119,21 @@ export default {
       // Draw the initial slider
       this.drawSlider();
     });
+
+    // updating time vertical line WIP
+    const player = this.player;
+    const verticalLine = document.querySelector("div.vertical-line");
+    const duration = this.videoDuration;
+    player.on("timeupdate", function() {
+      verticalLine.style.marginLeft = player.currentTime() * 90 + 'px';
+
+      if (player.currentTime() === duration) {
+        verticalLine.style.marginLeft = '0px';
+      }
+    });
   },
 
   beforeUnmount () {
-    // Remove the window resize and mousemove event listeners
     window.removeEventListener('resize', this.onWindowResize);
     window.removeEventListener('mousemove', this.handleMouseMove);
   },
@@ -261,8 +272,6 @@ export default {
       this.canvasContext.textAlign = 'center';
     },
     updateHandles (mouseX) {
-      // Move the closest handle to the mouse
-      // console.log(this.selectedElement);
       if (this.selectedElement === Handles.START_HANDLE) {
         const currentVideoDuration =
             this.durationPositionRatio * (this.endHandlePos - mouseX);
@@ -274,9 +283,7 @@ export default {
         }
         this.startHandlePos = mouseX;
         this.trimStart = this.durationPositionRatio * mouseX > 0 ? this.durationPositionRatio * mouseX : 0;
-        console.log(this.trimStart)
         this.updatePlayerTimeline(this.trimStart, this.trimEnd);
-        // this.$emit('trim-start', this.trimStart);
       } else if (this.selectedElement === Handles.END_HANDLE) {
         const currentVideoDuration =
             this.durationPositionRatio * (mouseX - this.startHandlePos);
@@ -288,13 +295,9 @@ export default {
         }
         this.endHandlePos = mouseX;
         this.trimEnd = this.durationPositionRatio * mouseX <= this.videoDuration ? this.durationPositionRatio * mouseX : this.videoDuration;
-        console.log(this.trimEnd);
         this.updatePlayerTimeline(this.trimStart, this.trimEnd);
-        // this.$emit('trim-end', this.trimEnd);
       } else if (this.selectedElement === Handles.TIME_HANDLE) {
         this.timeHandlePos = mouseX;
-        // const currentTime = this.durationPositionRatio * mouseX;
-        // this.$emit('current-time', currentTime);
       }
 
       // Make sure the handles stay within the slider track
@@ -317,17 +320,15 @@ export default {
       this.player.offset({
         start,
         end,
-        restart_beginning: true //Should the video go to the beginning when it ends
+        restart_beginning: true
       });
-      
+
       this.player.currentTime(start);
 
     },
     handleMouseDown (event) {
-      console.log('---------------------------handleMouseDown')
       const mouseX = event.offsetX;
 
-      // Calculate the distance between the mouse and each handle
       const distStartHandlePos = Math.abs(mouseX - this.startHandlePos);
       const distEndHandlePos = Math.abs(mouseX - this.endHandlePos);
       const distTimeHandlePos = Math.abs(mouseX - this.timeHandlePos);
@@ -350,7 +351,6 @@ export default {
       }
     },
     handleMouseUp () {
-      console.log('---------------------------handleMouseUp')
       this.selectedElement = null;
     },
     setCanvasWidth () {
@@ -378,11 +378,11 @@ export default {
       if (this.videoDuration > this.maxTrimDuration) {
         this.endHandlePos = this.maxTrimDuration * this.positionDurationRatio;
         this.trimEnd = this.maxTrimDuration;
-        this.$emit('trim-end', this.trimEnd);
+        this.updatePlayerTimeline(this.trimStart, this.trimEnd)
       } else {
         this.endHandlePos = this.canvasWidth;
         this.trimEnd = this.defaultTrim.end || this.videoDuration;
-        this.$emit('trim-end', this.trimEnd);
+        this.updatePlayerTimeline(this.trimStart, this.trimEnd)
       }
     },
   },
@@ -400,8 +400,9 @@ export default {
     border-radius: 8px;
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
     background: black;
-    width: 100%;
+    width: 50%;
     margin-bottom: 4px;
+    float: left;
   }
   .second-indicator{
     width: 4px;
@@ -413,5 +414,12 @@ export default {
     &--light{
       background: #AFBBCA;
     }
+  }
+
+  .vertical-line {
+    border-left: 6px solid #f9f9f9;
+    height: 107px;
+    position: fixed;
+    transition: margin 1200ms ease-out 0s;
   }
 </style>
